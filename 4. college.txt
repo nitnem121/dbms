@@ -1,0 +1,153 @@
+create database college;
+use college;
+
+CREATE TABLE STUDENT
+(
+USN VARCHAR(10) PRIMARY KEY,
+SNAME VARCHAR(25),
+ADDRESS VARCHAR(25), 
+PHONE VARCHAR(10), 
+GENDER CHAR(1)
+);
+
+CREATE TABLE SEMSEC
+(
+SSID VARCHAR(5) PRIMARY KEY, 
+SEM INT NOT NULL,
+SEC VARCHAR(8) NOT NULL
+);
+
+CREATE TABLE CLASS
+(
+USN VARCHAR(10),
+SSID VARCHAR(5), 
+FOREIGN KEY(USN) REFERENCES STUDENT(USN),
+FOREIGN KEY(SSID) REFERENCES SEMSEC(SSID)
+);
+
+
+CREATE TABLE SUBJECT
+(
+SUBCODE VARCHAR(8) PRIMARY KEY,
+TITLE VARCHAR(20),
+SEM INT NOT NULL, 
+CREDITS  INT 
+);
+
+
+CREATE TABLE IAMARKS (
+USN VARCHAR(10), 
+SUBCODE VARCHAR(8),
+SSID VARCHAR(5), 
+TEST1  INT, 
+TEST2  INT,
+TEST3  INT, 
+FINALIA INT,
+FOREIGN KEY(USN)REFERENCES STUDENT(USN), 
+FOREIGN KEY(SUBCODE) REFERENCES SUBJECT(SUBCODE),
+FOREIGN KEY(SSID) REFERENCES SEMSEC(SSID)
+);
+
+
+show tables;
+
+desc SEMSEC;
+insert into STUDENT values
+("JST20IS018","harshit","Delhi","9876543210",'M'),
+("JST20IS019","harsh","ranchi","8976543210",'M'),
+("JST20IS020","ojesvi","bangalore","9876553210",'F'),
+("JST20IS021","kriti","gorakhpur","9874543210",'F'),
+("JST20IS022","sonu","Delhi","987650000",'M'),
+("JST20IS023","prabhat","Patna","9870043210",'M');
+select * from SUBJECT;
+
+desc SEMSEC;
+insert into SEMSEC values
+("5A",5,"A"),
+("5B",5,"B"),
+("5C",5,"C"),
+("6A",6,"A"),
+("6B",6,"B"),
+("7A",7,"A");
+
+desc CLASS;
+insert into CLASS values
+("JST20IS018","5A"),
+("JST20IS019","5B"),
+("JST20IS020","5C"),
+("JST20IS021","6A"),
+("JST20IS022","6B"),
+("JST20IS023","7A");
+
+desc SUBJECT;
+insert into SUBJECT values
+("11is11","dbms",5,4),
+("11is12","coa",5,4),
+("11is13","web",6,3),
+("11is14","ai",6,3),
+("11is15","ml",7,2),
+("11is16","se",7,4);
+
+desc IAMARKS;
+insert into IAMARKS values
+("JST20IS018","11is11","5A",19,20,18,20),
+("JST20IS019","11is12","5B",17,18,19,19),
+("JST20IS020","11is12","5C",13,13,13,17),
+("JST20IS021","11is13","6A",19,19,19,15),
+("JST20IS022","11is14","6B",17,17,17,14),
+("JST20IS023","11is16","7A",18,18,18,15);
+select * from IAMARKS;
+
+alter table IAMARKS drop FINALIA;
+alter table IAMARKS add column FINALIA int default NULL;
+
+
+-- ques 1--
+select * from STUDENT s , CLASS c 
+where c.USN=s.USN in
+(
+select USN from CLASS where ssid="5B"
+);
+
+desc SEMSEC;
+desc STUDENT;
+-- ques2--
+
+select ss.SEM,ss.SEC,s.GENDER,COUNT(S.GENDER) as COUNT
+from   SEMSEC ss, STUDENT S, CLASS C
+where C.USN=s.USN and C.SSID=ss.SSID
+group by ss.SEM,ss.SEC,s.GENDER;
+ 
+-- ques3 --
+create view student_view as
+select USN,SUBCODE,TEST1
+from IAMARKS;
+select * from student_view;
+drop view student_view;
+
+
+-- ques 4
+SET SQL_SAFE_UPDATES=0;
+delimiter $$
+create procedure proc()
+begin
+     update IAMARKS
+     set FINALIA=greatest(Test1+test2,test1+test3,test2+test3)/2
+     where FINALIA is null;
+end $$
+delimiter ;
+call proc();
+set SQL_SAFE_UPDATES=1;
+
+drop procedure proc;
+
+
+-- ques5 --
+select S.USN,S.SNAME,S.ADDRESS,S.PHONE,S.GENDER,M.SSID,M.FINALIA,
+case
+   when  FINALIA >=17 and  FINALIA <=20 then "Outstanding"
+   when  FINALIA >=12 and  FINALIA <=16 then "Average"
+   when  FINALIA <12 then "Weak"
+end as cat 
+from STUDENT S,IAMARKS M
+where S.USN=M.USN and M.SSID in  ("5A","5B","5C");
