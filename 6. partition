@@ -1,0 +1,27 @@
+create database part;
+use part;
+drop database part;
+
+create table call_table(
+phone_no int(10) not null,
+call_start timestamp,
+call_description varchar(50),
+primary key(phone_no,call_start))
+partition by range(unix_timestamp(call_start))(
+partition p0 values less than(unix_timestamp("2023-01-22 00:00:00")),
+partition p1 values less than(unix_timestamp("2023-01-23 00:00:00")),
+partition p2 values less than maxvalue
+);
+insert into call_table values
+(1234567890,"2023-01-21 00:00:00","First call log"),
+(0987654321,"2023-01-22 00:00:00","Second call log"),
+(0987654322,"2023-01-20 00:00:00","Zero call log"),
+(0987654322,"2023-01-28 00:00:00"," call log");
+
+select * from call_table;
+
+select * from call_table partition(p0);
+
+select * from call_table partition(p1);
+
+select * from call_table partition(p2);
