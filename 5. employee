@@ -1,0 +1,146 @@
+create database employee;
+drop database employee;
+use employee;
+
+CREATE TABLE DEPARTMENT
+	(DNO VARCHAR (20) PRIMARY KEY,
+	DNAME VARCHAR (20),
+	MGR_SSN VARCHAR (20),
+	MGR_START_DATE DATE);
+
+insert into DEPARTMENT values
+("1","ISE","10","2019-05-07"),
+("2","CSE","20","2020-05-07"),
+("3","ME","30","2021-05-07"),
+("4","ECE","40","2022-05-07");
+select *from DEPARTMENT;
+
+
+
+CREATE TABLE EMPLOYEE
+	(SSN VARCHAR(20) PRIMARY KEY,
+	NAME VARCHAR(20),
+	ADDRESS VARCHAR(20),
+	SEX CHAR(1),
+	SALARY INTEGER,
+	SUPERSSN VARCHAR(20),
+	DNO VARCHAR(20),
+	FOREIGN KEY (SUPERSSN) REFERENCES EMPLOYEE (SSN),
+	FOREIGN KEY (DNO) REFERENCES DEPARTMENT (DNO));	
+desc EMPLOYEE;
+insert into EMPLOYEE values 
+("10","Harshit","Ghaziabad",'M',100000,NULL,1),
+("20","Harsh","Ranchi",'M',700000,NULL,2),
+("30","Ojesvi","Ghaziabad",'M',600000,NULL,3),
+("40","Prabhat","Patna",'M',500000,NULL,4),
+("50","Aroop","Kanpur",'M',400000,"10",1),
+("60","Kriti","Gorakhpur",'F',300000,"20",2),
+("70","Sonu","Gorakhpur",'F',200000,"30",3),
+("80","Monu","Lucknow",'M',300000,"40",4);
+select * from EMPLOYEE;
+
+
+insert into EMPLOYEE values 
+("90","Harshit p","Ghaziabad",'M',100000,NULL,1),
+("100","Harsh p","Ranchi",'M',700000,NULL,1),
+("101","Ojesvi p","Ghaziabad",'M',600000,NULL,1),
+("102","Prabhat p","Patna",'M',500000,NULL,1);
+ALTER TABLE DEPARTMENT
+	ADD FOREIGN KEY (MGR_SSN) REFERENCES EMPLOYEE(SSN);
+
+
+
+
+
+CREATE TABLE DLOCATION
+	(DLOC VARCHAR(20),
+	DNO VARCHAR(20),
+	FOREIGN KEY (DNO) REFERENCES DEPARTMENT(DNO));
+drop  table DLOCATION;
+desc  DLOCATION;
+insert into DLOCATION values
+("Bangalore","1"),
+("Mangalore","2"),
+("Delhi","3"),
+("Jaipur","4");
+select *from DLOCATION;
+
+
+
+
+CREATE TABLE PROJECT
+	(PNO INTEGER PRIMARY KEY,
+	PNAME VARCHAR(20),
+	PLOCATION VARCHAR(20),
+	DNO VARCHAR(20),
+	FOREIGN KEY (DNO) REFERENCES DEPARTMENT(DNO));
+desc PROJECT;
+insert into PROJECT values
+(100,"WeConnect1","Dubai",1),
+(101,"WeConnect2","DELHI",1),
+(102,"WeConnect3","Mumbai",2),
+(103,"WeConnect4","Bangalore",2),
+(104,"WeConnect5","Jaipur",3),
+(105,"WeConnect6","Goa",3),
+(106,"WeConnect7","Lucknow",4),
+(107,"WeConnect8","Ghaziabad",4);
+select *from PROJECT;
+
+
+drop table WORKS_ON;
+
+
+CREATE TABLE WORKS_ON
+	(HOURS INTEGER,
+	SSN VARCHAR(20),
+	PNO INTEGER,
+	FOREIGN KEY (SSN) REFERENCES EMPLOYEE(SSN),
+	FOREIGN KEY (PNO) REFERENCES PROJECT(PNO));
+desc works_on;
+insert into WORKS_ON values
+(100,10,100),
+(200,20,101),
+(300,30,102),
+(400,40,103),
+(10,50,104),
+(20,60,105),
+(30,70,106),
+(40,80,107);
+select * from works_on;
+
+
+
+
+show tables;
+
+ 
+ 
+ -- ques1
+ select w.PNO,e.* 
+ from works_on w, Employee e
+ where w.ssn=e.ssn and ( e.name like "%Ojesvi" or e.name like "%Harshit");
+ 
+ -- ques2
+ select e.ssn,e.name,e.address,e.sex,e.salary as PREVIOUS_SALARY,e.superssn,e.dno,(1.1*e.salary) as INCR_SALARY, d.dname as DEPARTMENT
+ from employee e, Department d
+ where e.dno=d.dno and d.dname="ISE";
+ 
+ -- ques3
+ select d.dname as DNAME, d.dno,SUM(e.salary) as SUM, max(e.salary) as MAX, min(e.salary) as MIN, AVG(e.salary) as AVG
+ from employee e, Department d
+ where e.dno=d.dno and d.dname="CSE";
+ 
+ -- ques4
+ select e.*,p.dno,p.pname 
+ from employee e, project p, works_on w
+ where w.ssn=e.ssn and w.pno=p.pno and p.dno=4;
+ 
+ -- ques5
+ select e.dno as DNUMBER,e.salary as SALARY,e.name as Name,count(*) as COUNT
+ from employee e
+ where e.salary >60000 and e.dno in(
+ select q.dno 
+ from employee q
+ group by q.dno 
+ having count(*)>2)
+ order by e.salary; 
