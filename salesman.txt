@@ -1,0 +1,107 @@
+create database salesman;
+use salesman;
+
+drop database salesman;
+
+create table salesman(
+sales_id int primary key,
+name varchar(40),
+city varchar(40),
+commission int
+);
+
+create table customer(
+cust_id int primary key,
+cust_name varchar(40),
+city varchar(40),
+grade int,
+sales_id int,
+foreign key(sales_id) references salesman(sales_id) on delete cascade
+);
+
+create table orders (
+ord_no int primary key,
+purchase_amt int,
+ord_date date,
+cust_id int,
+sales_id int,
+foreign key(cust_id) references customer(cust_id) on delete cascade,
+foreign key(sales_id) references salesman(sales_id) on delete cascade
+);
+
+desc salesman;
+insert into salesman values
+(1,"Fred","Bangalore",50),
+(2,"George","New Delhi",60),
+(3,"Draco","Kanpur",70),
+(1000,"Tom","Bhopal",30);
+
+desc customer;
+insert into customer values 
+(100,"Ram","Bangalore",3,1),
+(101,"Raj","Ghaziabad",4,2),
+(102,"Harsh","Kanpur",4,2),
+(103,"Harshit","Kanpur",1,3),
+(104,"Kriti","Kanpur",2,3),
+(105,"Anuraj","New Delhi",5,3),
+(106,"Priyank","Amritsar",3,1000);
+
+desc orders;
+insert into orders values
+(1000,10000,"2022-01-20",100,1),
+(1001,20000,"2022-01-20",101,2),
+(1002,30000,"2022-01-20",102,2),
+(1003,40000,"2022-02-20",103,3),
+(1004,10000,"2022-02-20",104,3),
+(1005,50000,"2022-02-20",105,3),
+(1006,20000,"2022-02-20",106,1000);
+
+
+-- queries
+
+-- 1
+select count(c.cust_id) from customer c
+where c.grade > (select avg(cu.grade) from customer cu where cu.city="Bangalore");
+
+-- 2
+select distinct s.sales_id, s.name
+from customer c, salesman s
+where c.sales_id=s.sales_id and c.sales_id in(
+select cu.sales_id
+from customer cu
+group by cu.sales_id
+having count(cu.sales_id)>1
+);
+
+-- 3 
+(select s.name
+from salesman s , customer c
+where s.sales_id=c.sales_id and s.city=c.city
+order by s.sales_id)
+union
+(select s.name
+from salesman s , customer c
+where s.sales_id=c.sales_id and s.city<>c.city
+order by s.sales_id);
+
+-- 4
+drop view view1;
+create view view1 as
+select o.*
+from salesman s,orders o
+where s.sales_id=o.sales_id and o.purchase_amt=(
+select max(ord.purchase_amt)
+from orders ord
+where ord.ord_date="2022-01-20"
+);
+select * from view1;
+
+-- 5
+delete from salesman
+where sales_id=1000;
+
+-- 6 
+select * from customer;
+alter table customer add index indexname (cust_id);
+show indexes from customer;
+drop table customer;
