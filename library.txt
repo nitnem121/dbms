@@ -1,0 +1,161 @@
+create database library;
+use library;
+-- drop database library;
+-- PBALCL
+-- pub book author library_branch  copies lending
+
+create table publisher(
+name varchar(30) primary key,
+address varchar(30),
+phone varchar(12)
+);
+
+create table book(
+book_id int primary key,
+title varchar(50),
+pub_name varchar(30),
+pub_year varchar(10),
+foreign key(pub_name) references publisher(name) on delete cascade
+);
+
+create table author(
+book_id int primary key,
+auth_name varchar(20),
+foreign key(book_id) references book(book_id) on delete cascade
+);
+
+create table library_branch(
+branch_id int primary key,
+branch_name varchar(30),
+address varchar(30)
+);
+
+create table book_copies(
+book_id int ,
+branch_id int,
+no_of_copies int,
+foreign key(book_id) references book(book_id) on delete cascade,
+foreign key(branch_id) references library_branch(branch_id) on delete cascade
+);
+
+create  table book_lending(
+book_id int,
+branch_id int,
+card_no int,
+date_out date,
+due_date date,
+foreign key(book_id) references book(book_id) on delete cascade,
+foreign key(branch_id) references library_branch(branch_id) on delete cascade
+);
+
+show tables;
+
+-- inserting values
+desc publisher;
+insert into publisher values
+("PUB-1","Bangalore","123456789"),
+("PUB-2","New Delhi","234567890"),
+("PUB-3","Kolkata","345678909"),
+("PUB-4","Mumbai","2345657890"),
+("PUB-5","Jaipur","654372839");
+
+desc book;
+insert into book values
+(1,"Harry Potter and The Philosophers Stone","PUB-1","1998"),
+(2,"Harry Potter and The Chamber of Secrets","PUB-2","1999"),
+(3,"Harry Potter and The Prisioner of Azkaban","PUB-3","2000"),
+(4,"Harry Potter and The Goblet of Fire","PUB-4","2001"),
+(5,"Harry Potter and The Order of Phoenix","PUB-1","2002"),
+(6,"Harry Potter and The Half Blood Prince","PUB-2","2003"),
+(7,"Harry Potter and The Deathly Hollows-1","PUB-3","2004"),
+(8,"Harry Potter and The Deathly Hollows-2","PUB-4","2005"),
+(9,"sample","PUB-1","2006");
+
+desc author;
+insert into author values
+(1,"J.K Rowling -1"),
+(2,"J.K Rowling -2"),
+(3,"J.K Rowling -3"),
+(4,"J.K Rowling -4"),
+(5,"J.K Rowling -1"),
+(6,"J.K Rowling -2"),
+(7,"J.K Rowling -3"),
+(8,"J.K Rowling -4"),
+(9,"J.K Rowling -1");
+
+
+desc library_branch;
+insert into library_branch values
+(10,"Branch-1","Gorakhpur"),
+(11,"Branch-2","Chennai"),
+(12,"Branch-3","Allahabad"),
+(13,"Branch-4","Lucknow"),
+(14,"Branch-5","Kanpur");
+
+desc book_copies;
+insert into book_copies values
+(1,10,100),
+(2,11,200),
+(3,12,300),
+(4,13,400),
+(5,14,500),
+(6,11,600),
+(7,12,700),
+(8,13,800),
+(9,14,1000);
+
+desc book_lending;
+insert into book_lending values
+(1,10,20,"2022-01-10","2022-02-10"),
+(2,11,21,"2022-02-10","2022-03-10"),
+(3,12,22,"2022-03-10","2022-03-10"),
+(4,13,23,"2022-03-10","2022-03-10"),
+(5,14,24,"2022-04-10","2022-04-10"),
+(6,10,25,"2017-01-10","2017-06-10"),
+(7,11,25,"2017-01-10","2017-06-10"),
+(8,12,25,"2017-01-10","2017-06-10"),
+(1,13,25,"2017-01-10","2017-06-10"),
+(9,14,26,"2022-09-10","2022-10-10");
+
+-- queries
+
+-- 1
+select b.*,p.*,a.*,lb.*,c.*
+from publisher p,book b,author a,library_branch lb,book_copies c
+ where b.pub_name=p.name and 
+       a.book_id=b.book_id and 
+	   c.book_id=b.book_id and 
+	   c.branch_id=lb.branch_id 
+order by b.book_id;
+
+
+-- 2
+select l.*
+from book_lending l
+where  l.date_out >="2017-01-01" and l.date_out <="2017-06-30" and l.card_no in(
+  select bl.card_no
+  from book_lending bl
+  group by(bl.card_no)
+  having count(bl.card_no)>3
+ )
+ order by book_id asc;
+
+
+-- 3
+select * from book;
+delete from book
+where book_id=9;
+
+-- 4
+create view view1 as
+select * from book;
+
+select * from view1;
+
+-- 5 
+create view view2 as
+select b.*, c.no_of_copies
+from book b, book_copies c
+where b.book_id=c.book_id;
+
+select * from view2;
