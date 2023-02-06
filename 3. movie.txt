@@ -1,0 +1,132 @@
+create database movies;
+use movies;
+
+-- drop database movies;
+-- ADMCR
+
+create table actor(
+act_id int primary key,
+act_name varchar(40),
+act_gender varchar (1)
+);
+
+create table director(
+dir_id int primary key,
+dir_name varchar(30),
+dir_phone varchar(12)
+);
+
+create table movies(
+mov_id int primary key,
+mov_title varchar(30),
+mov_yr varchar(5),
+mov_lang varchar(10),
+dir_id int,
+foreign key(dir_id) references director(dir_id) on delete cascade
+);
+
+create table movie_cast(
+act_id int,
+mov_id int,
+role varchar(20),
+foreign key(act_id) references actor(act_id) on delete cascade,
+foreign key(mov_id) references movies(mov_id) on delete cascade 
+);
+
+create table rating(
+mov_id int,
+rating int,
+foreign key(mov_id) references movies(mov_id) 
+);
+
+
+insert into actor values
+(1,"Alfred","M"),
+(2,"Leonardo","M"),
+(3,"Tom Hanks","M"),
+(4,"Matt Damon","M");
+
+
+insert into director values
+(10,"Hitchcock","123456"),
+(11,"Steven Spielberg","123766"),
+(12,"David Fincher","123986"),
+(13,"Christopher Nolan","1243676");
+
+
+insert into movies values
+(100,"Physco","1965","ENG",10),
+(101,"Birds","1998","ENG",10),
+(102,"Gone Girl","2021","ENG",12),
+(103,"Seven","2001","ENG",12),
+(104,"Inception","2012","ENG",13),
+(105,"Saving Private Ryan","2021","ENG",11),
+(106,"Dunkirk","2018","ENG",13);
+
+insert into movie_cast values
+(1,100,"Antagonist"),
+(2,104,"Protagonist"),
+(3,105,"Protagonist"),
+(4,105,"Protagonist"),
+(1,101,"Antagonist"),
+(2,103,"Protagonist"),
+(2,102,"Protagonist"),
+(1,106,"Protagonist");
+
+insert into rating values
+(100,3),
+(101,4),
+(102,5),
+(103,3),
+(104,5),
+(105,2),
+(106,0),
+(100,1),
+(101,2),
+(102,3),
+(103,4),
+(104,4),
+(105,3),
+(106,4);
+
+
+-- queries
+
+-- 1
+select m.*,d.dir_name
+from movies m, director d
+where m.dir_id=d.dir_id and d.dir_name="Hitchcock";
+
+-- 2
+select m.mov_title
+from movies m, movie_cast mc
+where m.mov_id=mc.mov_id and mc.act_id in(
+select q.act_id
+from movie_cast q
+group by q.act_id
+having count(*)>=1)
+group by m.mov_title
+having count(*)>1;
+
+
+-- 3
+select distinct a.*,m.mov_title,m.mov_yr
+from actor a,movies m,movie_cast mc
+where a.act_id=mc.act_id and mc.mov_id=m.mov_id and (m.mov_yr <=2000 or m.mov_yr>=2020);
+
+-- 4
+select distinct  m.mov_id,m.mov_title,m.dir_id,max(r.rating)
+from movies m, rating r
+where m.mov_id=r.mov_id 
+having max(r.rating)>0
+order by m.mov_title;
+
+-- 5 
+update rating
+set rating =5
+where mov_id in (
+select m.mov_id
+from movies m, director d
+where m.dir_id=d.dir_id and d.dir_name="Steven Spielberg"
+);
+select * from rating;
